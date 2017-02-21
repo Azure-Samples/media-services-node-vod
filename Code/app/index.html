@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="bower_components/angular/angular.min.js"></script>
+    <script src="bower_components/angular-route/angular-route.min.js"></script>
+    <script src="bower_components/angular-resource/angular-resource.min.js"></script>
+    <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+    <script src="bower_components/ng-file-upload-shim/ng-file-upload-shim.min.js"></script> <!-- for no html5 browsers support -->
+    <script src="bower_components/ng-file-upload/ng-file-upload.min.js"></script>
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src= "//amp.azure.net/libs/amp/latest/azuremediaplayer.min.js"></script>
+    <script src="scripts/angular/app.js"></script>
+    <link href="//amp.azure.net/libs/amp/latest/skins/amp-default/azuremediaplayer.min.css" rel="stylesheet">
+    <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="styles/main.css" rel="stylesheet">
+</head>
+<body ng-app="amsApp">
+
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div ng-controller="navCtrl">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" ng-click="isCollapsed = !isCollapsed">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" ng-click="reload()" href="#">Azure Media Services with AngularJS</a>
+        </div>
+        <div class="navbar-collapse" uib-collapse="isCollapsed">
+            <ul class="nav navbar-nav">
+                <li id="indice1"><a ng-click="reload()" href="#!/videos">All Videos</a></li>
+                <li id="indice2"><a href="#!/upload">Upload</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<ng-view></ng-view>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "azure-media-services",
+  "version": "0.0.1",
+  "dependencies": {
+    "bootstrap": "latest",
+    "angular": "latest",
+    "angular-route": "latest",
+    "angular-resource": "latest",
+    "ng-file-upload-shim": "latest",
+    "ng-file-upload": "latest",
+    "angular-bootstrap": "latest",
+    "jquery": "latest"
+  }
+}
