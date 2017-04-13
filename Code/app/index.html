@@ -11,6 +11,46 @@
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
     <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
     <script src= "//amp.azure.net/libs/amp/latest/azuremediaplayer.min.js"></script>
+
+    <!-- azure-storage.common.js also exports Node.js module stream, util and buffer -->
+    <script src="scripts/azure-storage.common.js"></script>
+    <script src="scripts/azure-storage.blob.js"></script>
+
+    <script>
+        // Provides a Stream for a file in webpage, inheriting from NodeJS Readable stream.
+        var Stream = require('stream');
+        var util = require('util');
+        var Buffer = require('buffer').Buffer;
+
+        function FileStream(file, opt) {
+            Stream.Readable.call(this, opt);
+
+            this.fileReader = new FileReader(file);
+            this.file = file;
+            this.size = file.size;
+            this.chunkSize = 1024 * 1024 * 4; // 4MB
+            this.offset = 0;
+            var _me = this;
+
+            this.fileReader.onloadend = function loaded(event) {
+                var data = event.target.result;
+                var buf = Buffer.from(data);
+                _me.push(buf);
+            }
+        }
+        util.inherits(FileStream, Stream.Readable);
+        FileStream.prototype._read = function() {
+            if (this.offset > this.size) {
+                this.push(null);
+            } else {
+                var end = this.offset + this.chunkSize;
+                var slice = this.file.slice(this.offset, end);
+                this.fileReader.readAsArrayBuffer(slice);
+                this.offset = end;
+            }
+        };
+    </script>
+
     <script src="scripts/angular/app.js"></script>
     <link href="//amp.azure.net/libs/amp/latest/skins/amp-default/azuremediaplayer.min.css" rel="stylesheet">
     <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">

@@ -4,4 +4,3 @@ module.exports = {
     client_id: 'xxxxx',
     client_secret: 'xxxxx'
 };
-

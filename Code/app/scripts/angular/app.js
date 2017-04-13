@@ -101,24 +101,45 @@ app.controller('uploadCtrl', function ($scope, $http, Upload, $timeout, newVideo
     }
 
     var upload = function (file) {
-        var path = newVideo.sasURL.split('?');
-        newVideo.sasURL = path[0] + '/' + newVideo.filename + '?' + path[1];
+        var path1 = newVideo.sasURL.split('?');
+        console.log(path1);
+        var sasKey = path1[1];
+        var path2 = path1[0].split('/');
+        var blobStorageUri = 'https://' + path2[2];
+        var containerName = path2[3];
+        var blobName = newVideo.filename;
+
         var fileReader = new FileReader();
         fileReader.readAsArrayBuffer(file);
+
         fileReader.onload = function (e) {
             if(newVideo.thumbnail === ''){
                 createThumbnail(fileReader, file, newVideo);
             }
-            Upload.http({
-                method: "PUT",
-                url: newVideo.sasURL,
-                headers: {
-                    'x-ms-blob-type': 'BlockBlob',
-                    'x-ms-blob-content-type': file.type
-                },
-                data: e.target.result
-            }).then(function (resp) {
-                if (resp.status == '201'){
+        }
+
+        var blobService = AzureStorage.createBlobServiceWithSas(blobStorageUri, sasKey).withFilter(new AzureStorage.ExponentialRetryPolicyFilter());
+        if (!blobService)
+            return;
+
+        var fileStream = new FileStream(file);
+        // Make a smaller block size when uploading small blobs
+        var blockSize = file.size > 1024 * 1024 * 32 ? 1024 * 1024 * 4 : 1024 * 512;
+        var options = {
+            storeBlobContentMD5: false,
+            blockSize: blockSize
+        };
+
+        blobService.singleBlobPutThresholdInBytes = blockSize;
+
+        var finishedOrError = false;
+        var speedSummary = blobService.createBlockBlobFromStream(containerName, blobName, fileStream, file.size, options,
+            function (error, result, response) {
+                finishedOrError = true;
+                if (error) {
+                    $scope.uploaderror = true;
+                    $scope.errorMsg = error;
+                } else {
                     $http.post('/encode/' + newVideo.rawAssetId, {'size': file.size, 'thumbnail': newVideo.thumbnail})
                         .then(function successCallback(response){
                             $scope.uploadsuccess = true;
@@ -127,18 +148,20 @@ app.controller('uploadCtrl', function ($scope, $http, Upload, $timeout, newVideo
                             $scope.errorMsg = error;
                         });
                 }
-                else{
-                    $scope.uploaderror = true;
-                    $scope.errorMsg = resp.status + ': ' + resp.data;
-                }
-            }, function (error) {
-                $scope.uploaderror = true;
-                $scope.errorMsg = error;
-            }, function (evt) {
-                $scope.dynamic = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-                $scope.fileloader = false;
             });
+
+        function refreshProgress () {
+            $timeout(function () {
+                if (!finishedOrError) {
+                    var process = speedSummary.getCompletePercent();
+                    $scope.dynamic = Math.min(100, parseInt(process));
+                    $scope.fileloader = false;
+                    refreshProgress();
+                }
+            }, 200);
         }
+
+        refreshProgress();
     }
 
     var createThumbnail = function (fileReader, file, newVideo) {
